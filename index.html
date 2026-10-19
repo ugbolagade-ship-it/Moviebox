@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CineStream - NextGen Movie Experience</title>
   
-  <!-- Google Fonts & FontAwesome Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- HLS.js Library for m3u8 stream playback support -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
   <style>
@@ -31,477 +29,89 @@
       --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; overflow-x: hidden; padding-bottom: 60px; }
 
-    body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      min-height: 100vh;
-      overflow-x: hidden;
-      padding-bottom: 60px;
-    }
-
-    /* Background Ambient Glow */
     .ambient-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-      pointer-events: none;
-      background: 
-        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 40%);
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none;
+      background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 40%);
     }
 
-    /* Navbar */
     header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(8, 9, 12, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--glass-border);
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+      position: sticky; top: 0; z-index: 100; background: rgba(8, 9, 12, 0.85);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--glass-border); padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: var(--text-main);
-      font-weight: 800;
-      font-size: 1.35rem;
-      letter-spacing: -0.5px;
-    }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-main); font-weight: 800; font-size: 1.35rem; }
+    .brand-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
 
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      box-shadow: 0 4px 15px var(--accent-glow);
-    }
+    .search-bar { position: relative; flex: 1; max-width: 480px; }
+    .search-bar input { width: 100%; padding: 10px 16px 10px 42px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: var(--radius-md); color: var(--text-main); font-size: 0.95rem; outline: none; }
+    .search-bar input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-glow); }
+    .search-bar i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
 
-    .search-bar {
-      position: relative;
-      flex: 1;
-      max-width: 480px;
-    }
+    .btn-icon { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-main); width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-    .search-bar input {
-      width: 100%;
-      padding: 10px 16px 10px 42px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-md);
-      color: var(--text-main);
-      font-size: 0.95rem;
-      outline: none;
-      transition: var(--transition-smooth);
-    }
+    .container { max-width: 1280px; margin: 0 auto; padding: 24px 16px; }
 
-    .search-bar input:focus {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    .search-bar i {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .btn-icon {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      color: var(--text-main);
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: var(--transition-smooth);
-    }
-
-    .btn-icon:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    /* Container & Layout */
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 24px 16px;
-    }
-
-    /* Hero Banner */
     .hero {
-      position: relative;
-      border-radius: 20px;
-      overflow: hidden;
-      margin-bottom: 32px;
+      position: relative; border-radius: 20px; overflow: hidden; margin-bottom: 32px;
       background: linear-gradient(180deg, rgba(8,9,12,0) 0%, rgba(8,9,12,0.95) 100%),
                   url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
-      min-height: 320px;
-      display: flex;
-      align-items: flex-end;
-      padding: 32px;
-      border: 1px solid var(--glass-border);
+      min-height: 280px; display: flex; align-items: flex-end; padding: 32px; border: 1px solid var(--glass-border);
     }
+    .hero-content { max-width: 600px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid var(--accent-primary); border-radius: 20px; color: #a5b4fc; font-size: 0.8rem; font-weight: 600; margin-bottom: 12px; }
+    .hero h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; margin-bottom: 8px; }
+    .hero p { color: var(--text-muted); font-size: 0.9rem; }
 
-    .hero-content {
-      max-width: 600px;
-      z-index: 2;
-    }
+    .section-title { margin-bottom: 18px; }
+    .section-title h2 { font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      background: rgba(99, 102, 241, 0.2);
-      border: 1px solid var(--accent-primary);
-      border-radius: 20px;
-      color: #a5b4fc;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
 
-    .hero h1 {
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      font-weight: 800;
-      line-height: 1.15;
-      margin-bottom: 10px;
-    }
+    .card { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; transition: var(--transition-smooth); display: flex; flex-direction: column; }
+    .card:hover { transform: translateY(-4px); background: var(--bg-card-hover); border-color: rgba(255, 255, 255, 0.2); }
+    
+    .poster-wrapper { position: relative; aspect-ratio: 2/3; width: 100%; background: #12141d; }
+    .poster-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 
-    .hero p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
+    .play-overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: var(--transition-smooth); }
+    .card:hover .play-overlay { opacity: 1; }
+    .play-btn-circle { width: 44px; height: 44px; background: var(--accent-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
 
-    /* Section Headers */
-    .section-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-    }
+    .card-info { padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .card-title { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; }
 
-    .section-title h2 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; visibility: hidden; transition: var(--transition-smooth); }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-box { background: #11131a; border: 1px solid var(--glass-border); border-radius: 20px; width: 100%; max-width: 860px; overflow: hidden; }
 
-    /* Grid Layout */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-      gap: 20px;
-    }
+    .modal-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
+    .player-wrapper { position: relative; aspect-ratio: 16/9; background: #000; width: 100%; }
+    video { width: 100%; height: 100%; outline: none; }
 
-    /* Cards */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      cursor: pointer;
-      transition: var(--transition-smooth);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
+    .modal-actions { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255, 255, 255, 0.02); border-top: 1px solid var(--glass-border); }
+    .btn-action { padding: 10px 18px; border-radius: var(--radius-md); border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn-download { background: linear-gradient(135deg, var(--accent-green), #059669); color: #fff; }
+    .btn-close { background: rgba(255, 255, 255, 0.08); color: var(--text-main); }
 
-    .card:hover {
-      transform: translateY(-6px);
-      background: var(--bg-card-hover);
-      border-color: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-    }
-
-    .poster-wrapper {
-      position: relative;
-      aspect-ratio: 2/3;
-      width: 100%;
-      overflow: hidden;
-      background: #12141d;
-    }
-
-    .poster-wrapper img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: var(--transition-smooth);
-    }
-
-    .card:hover .poster-wrapper img {
-      transform: scale(1.05);
-    }
-
-    .play-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: var(--transition-smooth);
-    }
-
-    .card:hover .play-overlay {
-      opacity: 1;
-    }
-
-    .play-btn-circle {
-      width: 48px;
-      height: 48px;
-      background: var(--accent-primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 1.1rem;
-      box-shadow: 0 4px 15px var(--accent-glow);
-    }
-
-    .card-info {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 1;
-    }
-
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .card-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      opacity: 0;
-      visibility: hidden;
-      transition: var(--transition-smooth);
-    }
-
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal-box {
-      background: #11131a;
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 860px;
-      overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    }
-
-    .modal-header {
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--glass-border);
-    }
-
-    .modal-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-
-    .player-wrapper {
-      position: relative;
-      aspect-ratio: 16/9;
-      background: #000;
-      width: 100%;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      outline: none;
-    }
-
-    .modal-actions {
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.02);
-      border-top: 1px solid var(--glass-border);
-      flex-wrap: wrap;
-    }
-
-    .btn-action {
-      padding: 10px 18px;
-      border-radius: var(--radius-md);
-      border: none;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      transition: var(--transition-smooth);
-    }
-
-    .btn-download {
-      background: linear-gradient(135deg, var(--accent-green), #059669);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    }
-
-    .btn-download:hover {
-      filter: brightness(1.1);
-      transform: translateY(-1px);
-    }
-
-    .btn-close {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-    }
-
-    .btn-close:hover {
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    /* Settings Form */
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-md);
-      color: var(--text-main);
-      font-size: 0.95rem;
-      outline: none;
-    }
-
-    /* Loading Spinner */
-    .spinner {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px;
-    }
-
-    .spinner::after {
-      content: "";
-      width: 36px;
-      height: 36px;
-      border: 3px solid rgba(255, 255, 255, 0.1);
-      border-top-color: var(--accent-primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 640px) {
-      .hero {
-        min-height: 240px;
-        padding: 20px;
-      }
-      .grid {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        gap: 12px;
-      }
-      .modal-actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .btn-action {
-        justify-content: center;
-      }
-    }
+    .spinner { display: flex; justify-content: center; align-items: center; padding: 40px; grid-column: 1/-1; }
+    .spinner::after { content: ""; width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
   <div class="ambient-bg"></div>
 
-  <!-- Header / Navigation -->
   <header>
     <a href="#" class="brand">
-      <div class="brand-icon">
-        <i class="fa-solid fa-play"></i>
-      </div>
+      <div class="brand-icon"><i class="fa-solid fa-play"></i></div>
       <span>CineStream</span>
     </a>
 
@@ -510,54 +120,39 @@
       <input type="text" id="searchInput" placeholder="Search movies, TV shows..." oninput="handleSearch()">
     </div>
 
-    <div class="nav-actions">
-      <button class="btn-icon" title="API Settings" onclick="openSettingsModal()">
-        <i class="fa-solid fa-gear"></i>
-      </button>
-    </div>
+    <button class="btn-icon" title="API Settings" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i></button>
   </header>
 
-  <!-- Main Container -->
   <main class="container">
-
-    <!-- Hero Feature Banner -->
     <section class="hero">
       <div class="hero-content">
-        <div class="hero-badge">
-          <i class="fa-solid fa-fire"></i> Featured Release
-        </div>
-        <h1>Stream Unlimited Entertainment</h1>
-        <p>Explore thousands of movies and TV series with high-speed streaming and direct downloads.</p>
+        <div class="hero-badge"><i class="fa-solid fa-fire"></i> Live Server Connected</div>
+        <h1>Stream & Download Movies</h1>
+        <p>Direct stream links and high-speed MP4 downloads powered by MovieBox API.</p>
       </div>
     </section>
 
-    <!-- Content Section -->
     <section>
       <div class="section-title">
-        <h2 id="sectionHeading"><i class="fa-solid fa-compact-disc"></i> Trending Now</h2>
+        <h2 id="sectionHeading"><i class="fa-solid fa-compact-disc"></i> Featured Releases</h2>
       </div>
-
-      <div id="contentGrid" class="grid">
-        <!-- Content dynamically injected here -->
-      </div>
+      <div id="contentGrid" class="grid"></div>
     </section>
-
   </main>
 
-  <!-- Player Modal with Direct Download Button -->
+  <!-- Player & Download Modal -->
   <div id="playerModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-header">
-        <span id="playerTitle" class="modal-title">Playing Video</span>
+        <span id="playerTitle" class="modal-title">Playing Stream</span>
         <button class="btn-icon" onclick="closePlayerModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="player-wrapper">
         <video id="videoPlayer" controls autoplay></video>
       </div>
       <div class="modal-actions">
-        <!-- Direct Download Button -->
         <a id="downloadBtn" href="#" target="_blank" download class="btn-action btn-download">
-          <i class="fa-solid fa-download"></i> Direct Download Video
+          <i class="fa-solid fa-download"></i> Download Video (.MP4)
         </a>
         <button class="btn-action btn-close" onclick="closePlayerModal()">Close</button>
       </div>
@@ -566,93 +161,124 @@
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 480px;">
-      <div class="modal-header">
-        <span class="modal-title">API Configuration</span>
-        <button class="btn-icon" onclick="closeSettingsModal()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div style="padding: 20px;">
-        <div class="form-group">
-          <label for="apiUrlInput">Backend API Base URL</label>
-          <input type="text" id="apiUrlInput" placeholder="https://moviebox-0rub.onrender.com" />
-        </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn-action btn-close" onclick="closeSettingsModal()">Cancel</button>
-          <button class="btn-action btn-download" style="background: var(--accent-primary);" onclick="saveSettings()">Save Configuration</button>
-        </div>
+    <div class="modal-box" style="max-width: 480px; padding: 20px;">
+      <h3 style="margin-bottom: 12px;">API Configuration</h3>
+      <input type="text" id="apiUrlInput" style="width: 100%; padding: 10px; background: #1a1c23; border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; margin-bottom: 16px;" />
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn-action btn-close" onclick="closeSettingsModal()">Cancel</button>
+        <button class="btn-action btn-download" style="background: var(--accent-primary);" onclick="saveSettings()">Save</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Configuration & State
     const DEFAULT_API = "https://moviebox-0rub.onrender.com";
     let apiBase = localStorage.getItem("cinestream_api") || DEFAULT_API;
     let searchTimeout = null;
     let hlsInstance = null;
 
-    // Initialize
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("apiUrlInput").value = apiBase;
       loadHomeContent();
     });
 
-    // Fetch Home/Trending Content
+    // Helper: Safely Extract Items Array from MovieBox Response
+    function extractItems(data) {
+      if (!data) return [];
+      if (Array.isArray(data)) return data;
+      if (data.results && Array.isArray(data.results)) return data.results;
+      if (data.items && Array.isArray(data.items)) return data.items;
+      
+      // Parse MovieBox nested home schema
+      let extracted = [];
+      const dataObj = data.data || data;
+      
+      if (dataObj.operatingList && Array.isArray(dataObj.operatingList)) {
+        dataObj.operatingList.forEach(list => {
+          if (list.items) extracted.push(...list.items);
+        });
+      }
+      if (dataObj.operatingBanners && Array.isArray(dataObj.operatingBanners)) {
+        dataObj.operatingBanners.forEach(b => {
+          if (b.subject) extracted.push(b.subject);
+        });
+      }
+      return extracted;
+    }
+
     async function loadHomeContent() {
       const grid = document.getElementById("contentGrid");
       grid.innerHTML = `<div class="spinner"></div>`;
 
       try {
-        const response = await fetch(`${apiBase}/home`);
-        if (!response.ok) throw new Error("API Offline");
+        // Try fetching Movies endpoint first for a clean grid, or fallback to Home
+        let response = await fetch(`${apiBase}/movies?page=1`);
+        if (!response.ok) response = await fetch(`${apiBase}/home`);
+        
         const data = await response.json();
-        renderGrid(data.results || data);
+        const items = extractItems(data);
+
+        if (items.length > 0) {
+          renderGrid(items);
+        } else {
+          // Fallback search
+          fetchSearchResults("Avatar");
+        }
       } catch (err) {
-        console.warn("Backend unavailable, rendering sample data:", err);
-        renderSampleData();
+        console.error("Fetch error:", err);
+        renderGrid([]);
       }
     }
 
-    // Debounced Search
     function handleSearch() {
       clearTimeout(searchTimeout);
       const query = document.getElementById("searchInput").value.trim();
       
       if (!query) {
-        document.getElementById("sectionHeading").innerHTML = `<i class="fa-solid fa-compact-disc"></i> Trending Now`;
+        document.getElementById("sectionHeading").innerHTML = `<i class="fa-solid fa-compact-disc"></i> Featured Releases`;
         loadHomeContent();
         return;
       }
 
-      searchTimeout = setTimeout(async () => {
-        const grid = document.getElementById("contentGrid");
+      searchTimeout = setTimeout(() => {
         document.getElementById("sectionHeading").innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> Search Results for "${query}"`;
-        grid.innerHTML = `<div class="spinner"></div>`;
-
-        try {
-          const response = await fetch(`${apiBase}/search?q=${encodeURIComponent(query)}`);
-          const data = await response.json();
-          renderGrid(data.results || data);
-        } catch (err) {
-          grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No results found or server error.</p>`;
-        }
-      }, 500);
+        fetchSearchResults(query);
+      }, 400);
     }
 
-    // Render Cards Grid
+    async function fetchSearchResults(query) {
+      const grid = document.getElementById("contentGrid");
+      grid.innerHTML = `<div class="spinner"></div>`;
+
+      try {
+        const response = await fetch(`${apiBase}/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        renderGrid(extractItems(data));
+      } catch (err) {
+        grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">Failed to fetch search results.</p>`;
+      }
+    }
+
     function renderGrid(items) {
       const grid = document.getElementById("contentGrid");
       grid.innerHTML = "";
 
       if (!items || items.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No movies or shows available.</p>`;
+        grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No movies found. Try searching above!</p>`;
         return;
       }
 
-      items.forEach(item => {
-        const id = item.subject_id || item.id || item.subjectId;
+      items.forEach(rawItem => {
+        const item = rawItem.subject || rawItem;
+        const id = item.subject_id || item.subjectId || item.id;
         const title = item.title || item.name || "Untitled";
-        const cover = item.cover || item.poster || "https://via.placeholder.com/300x450?text=No+Poster";
+        
+        let cover = "https://via.placeholder.com/300x450?text=No+Poster";
+        if (item.cover) {
+          cover = typeof item.cover === "string" ? item.cover : (item.cover.url || cover);
+        }
+
+        if (!id) return;
 
         const card = document.createElement("div");
         card.className = "card";
@@ -662,16 +288,14 @@
           <div class="poster-wrapper">
             <img src="${cover}" alt="${title}" loading="lazy">
             <div class="play-overlay">
-              <div class="play-btn-circle">
-                <i class="fa-solid fa-play"></i>
-              </div>
+              <div class="play-btn-circle"><i class="fa-solid fa-play"></i></div>
             </div>
           </div>
           <div class="card-info">
             <div class="card-title">${title}</div>
             <div class="card-meta">
-              <span>HD</span>
-              <span><i class="fa-solid fa-star" style="color: #f59e0b;"></i> 4.8</span>
+              <span>${item.year || 'HD'}</span>
+              <span><i class="fa-solid fa-star" style="color: #f59e0b;"></i> ${item.rating || '4.8'}</span>
             </div>
           </div>
         `;
@@ -680,7 +304,6 @@
       });
     }
 
-    // Stream & Download Trigger
     async function openStream(subjectId, title) {
       const modal = document.getElementById("playerModal");
       const video = document.getElementById("videoPlayer");
@@ -692,16 +315,15 @@
       try {
         const response = await fetch(`${apiBase}/api/stream/${subjectId}`);
         const data = await response.json();
-
-        // Extract Stream URL
-        const streamUrl = data.stream_url || data.url || (data.qualities && data.qualities[0].url);
+        
+        const streams = data.streams || [];
+        const topStream = streams[0] || null;
+        const streamUrl = topStream ? topStream.url : (data.stream_url || data.url);
 
         if (streamUrl) {
-          // Update Download Button Link
           downloadBtn.href = streamUrl;
           downloadBtn.setAttribute("download", `${title}.mp4`);
 
-          // Play HLS (.m3u8) or Direct MP4 Stream
           if (streamUrl.includes(".m3u8") && Hls.isSupported()) {
             if (hlsInstance) hlsInstance.destroy();
             hlsInstance = new Hls();
@@ -711,20 +333,18 @@
             video.src = streamUrl;
           }
         } else {
-          alert("Stream URL currently unavailable.");
+          alert("No stream source available for this item.");
           closePlayerModal();
         }
       } catch (err) {
-        alert("Failed to load video stream from API.");
+        alert("Failed to connect to stream server.");
         closePlayerModal();
       }
     }
 
-    // Close Player Modal
     function closePlayerModal() {
       const modal = document.getElementById("playerModal");
       const video = document.getElementById("videoPlayer");
-      
       modal.classList.remove("active");
       video.pause();
       video.src = "";
@@ -734,15 +354,8 @@
       }
     }
 
-    // Settings Modal
-    function openSettingsModal() {
-      document.getElementById("settingsModal").classList.add("active");
-    }
-
-    function closeSettingsModal() {
-      document.getElementById("settingsModal").classList.remove("active");
-    }
-
+    function openSettingsModal() { document.getElementById("settingsModal").classList.add("active"); }
+    function closeSettingsModal() { document.getElementById("settingsModal").classList.remove("active"); }
     function saveSettings() {
       const url = document.getElementById("apiUrlInput").value.trim();
       if (url) {
@@ -751,17 +364,6 @@
         closeSettingsModal();
         loadHomeContent();
       }
-    }
-
-    // Offline Sample Data Fallback
-    function renderSampleData() {
-      const samples = [
-        { subject_id: "101", title: "Cyberpunk 2099", cover: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=400&q=80" },
-        { subject_id: "102", title: "Interstellar Horizon", cover: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=400&q=80" },
-        { subject_id: "103", title: "The Dark Knight Rises", cover: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=400&q=80" },
-        { subject_id: "104", title: "Neon Velocity", cover: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80" }
-      ];
-      renderGrid(samples);
     }
   </script>
 </body>
